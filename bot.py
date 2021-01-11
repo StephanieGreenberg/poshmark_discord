@@ -1,7 +1,31 @@
+# bot.py
+
+import os
+import discord
+import random
+import logging
+import poshmark_webscraper as webscraper
+from dotenv import load_dotenv
+from discord.ext import commands
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import time
-import discord
+
+#logging.basicConfig(level=logging.INFO)
+
+#get discord token and discord guild from .env file. note: guild means the same thing as server.
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD = os.getenv('DISCORD_GUILD')
+
+#channel IDs
+LULU_LEMON_CHANNEL = 795488593778311179
+
+#sets correct permissions
+intents = discord.Intents.all()
+
+#create a new discord client, which represents a connection to discord
+client = commands.Bot(command_prefix = '!', intents=intents)
 
 ''' 
 Open URL from url parameter and return a BeautifulSoup object 
@@ -15,12 +39,12 @@ def openURL(url):
 	# Return parsed version of the Poshmark link
 	return poshmark
 
-''' 
-Continuously refresh the URL specified in the url parameter and 
-look for new listings. Print info about each listing including the listing
-URL, title, price, and size
-'''
-def getNewListings(url, channel):
+#the on_ready event is triggered when the client has connected to discord
+@client.event
+async def on_ready():
+	print('Bot is ready.')
+	channel = client.get_channel(LULU_LEMON_CHANNEL)
+	url = "https://poshmark.com/search?query=lululemon%20athletica&sort_by=added_desc"
 	# Dictionary to hold item information
 	itemInfo = {}
 
@@ -68,9 +92,17 @@ def getNewListings(url, channel):
 				}
 
 			# Print item info
-			channel.send(f"{listingTitle}\nSize:{listingSize}\nPrice:{listingPrice}\nImage URL:{listingImageURL}\n{listingURL}\n\n")
+			await channel.send(f"{listingTitle}\nSize: {listingSize}\nPrice: {listingPrice}\n{listingURL}\n\n")
 
-def main(channel):
-	# Get lululemon postings page on Poshmark
-	url = "https://poshmark.com/search?query=lululemon%20athletica&sort_by=added_desc"
-	getNewListings(url, channel)
+@client.event
+async def on_member_join(member):
+	print(f'{member} has joined a server.')
+	await member.create_dm()
+	await member.dm_channel.send(
+		f'Hi {member.name}, welcome to the Poshmark Discord server!')
+
+@client.event
+async def on_member_remove(member):
+	print(f'{member} has left a server.')
+
+client.run(TOKEN)
