@@ -45,9 +45,15 @@ async def on_ready():
 	print('Bot is ready.')
 	channel = client.get_channel(LULU_LEMON_CHANNEL)
 	url = "https://poshmark.com/search?query=lululemon%20athletica&sort_by=added_desc"
+
 	# Dictionary to hold item information
 	itemInfo = {}
 
+	''' 
+	Continuously refresh the URL specified in the url parameter and 
+	look for new listings. Print info about each listing including the listing
+	URL, title, price, and size
+	'''
 	while True:
 		poshmark = openURL(url)
 
